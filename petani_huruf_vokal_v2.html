@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Petani Huruf Vokal - Game Anak</title>
+<style>
+/* =========================================================
+   PETANI HURUF VOKAL V2
+   Game Edukasi Anak Usia 2-3 Tahun
+========================================================= */
+
+:root {
+  --green: #70d66b;
+  --darkgreen: #2e8b57;
+  --yellow: #ffd84d;
+  --blue: #7fd8ff;
+  --pink: #ff9fd6;
+  --white: #fff;
+  --brown: #8B4513;
+  --shadow: 0 8px 18px rgba(0,0,0,.15);
+  --font-main: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+body {
+  overflow: hidden;
+  font-family: var(--font-main);
+  background: linear-gradient(#8ee5ff, #dff9ff);
+  height: 100vh;
+  width: 100vw;
+}
+
+/* =========================
+   LOADING SCREEN
+========================= */
+#loadingScreen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(#8ee5ff, #ffffff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 9999;
+  transition: opacity 0.5s;
+}
+
+.loader {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 10px solid #fff;
+  border-top: 10px solid var(--green);
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+#loadingScreen h1 {
+  color: var(--darkgreen);
+  text-shadow: 2px 2px 0px white;
+  font-size: 2rem;
+  text-align: center;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* =========================
+   BACKGROUND & SAWAH
+========================= */
+#gameContainer {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(#85dcff, #dff7ff);
+  z-index: 0;
+}
+
+.cloud {
+  position: absolute;
+  background: white;
+  border-radius: 50px;
+  opacity: 0.9;
+  animation: cloudMove linear infinite;
+}
+.cloud::before, .cloud::after {
+  content: "";
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+}
+.cloud::before { width: 40px; height: 40px; top: -15px; left: 10px; }
+.cloud::after { width: 60px; height: 60px; top: -25px; right: 10px; }
+
+.c1 { width: 140px; height: 50px; top: 10%; left: -200px; animation-duration: 45s; }
+.c2 { width: 180px; height: 60px; top: 25%; left: -300px; animation-duration: 60s; }
+
+@keyframes cloudMove {
+  from { transform: translateX(0); }
+  to { transform: translateX(120vw); }
+}
+
+.field {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 40%;
+  background: repeating-linear-gradient(90deg, #6dd36b 0px, #6dd36b 40px, #74de73 40px, #74de73 80px);
+  z-index: 1;
+}
+
+.water {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 12%;
+  background: rgba(80, 180, 255, 0.6);
+  overflow: hidden;
+  z-index: 2;
+}
+
+.ripple {
+  position: absolute;
+  border: 3px solid rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  animation: ripple 2s linear forwards;
+}
+
+@keyframes ripple {
+  from { transform: scale(0.2); opacity: 1; }
+  to { transform: scale(2.5); opacity: 0; }
+}
+
+/* =========================
+   TOP BAR & CONTROLS
+========================= */
+.topbar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 20;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.stats, .controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.badge {
+  background: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--darkgreen);
+  box-shadow: var(--shadow);
+  border: 2px solid var(--yellow);
+}
+
+button {
+  border: none;
+  border-radius: 20px;
+  padding: 10px 15px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background: var(--yellow);
+  color: var(--brown);
+  box-shadow: 0 4px 0 #d4a72c;
+  font-family: var(--font-main);
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #d4a72c;
+}
+
+button:active, button.active {
+  transform: translateY(4px);
+  box-shadow: 0 0px 0 #d4a72c;
+  background: #ffec8b;
+}
+
+/* =========================
+   GAME AREAS (GRID LAYOUT)
+========================= */
+#modeContainer {
+  position: absolute;
+  inset: 80px 10px 10px 10px;
+  display: grid;
+  gap: 15px;
+  transition: all 0.5s ease;
+  z-index: 10;
+}
+
+.single { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+.duel { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
+.squad { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+
+.playerArea {
+  position: relative;
+  overflow: hidden;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(5px);
+  border: 4px solid rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  box-shadow: inset 0 0 20px rgba(255,255,255,0.5);
+}
+
+.playerHeader {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 15px;
+  background: rgba(255,255,255,0.7);
+  border-bottom: 2px solid white;
+}
+
+.playerLabel {
+  font-weight: bold;
+  color: var(--brown);
+  font-size: 1.1rem;
+}
+
+.playerScore {
+  font-weight: bold;
+  color: var(--darkgreen);
+  font-size: 1.1rem;
+}
+
+/* =========================
+   GAMEPLAY ELEMENTS
+========================= */
+.gameContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  padding: 10px;
+  position: relative;
+}
+
+.wordBox {
+  background: white;
+  padding: 15px 30px;
+  border-radius: 25px;
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: bold;
+  color: #333;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  letter-spacing: 8px;
+  text-align: center;
+  border: 3px dashed var(--blue);
+}
+
+.missing-letter {
+  color: var(--pink);
+  border-bottom: 4px solid var(--pink);
+  display: inline-block;
+  min-width: 40px;
+}
+
+.farm-scene {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 20px;
+  height: 120px;
+  width: 100%;
+  position: relative;
+}
+
+.farmer {
+  font-size: clamp(4rem, 8vw, 6rem);
+  transition: transform 0.5s;
+  z-index: 2;
+  position: relative;
+}
+.farmer.idle { animation: idle 2s ease-in-out infinite; }
+.farmer.walk { animation: walk 0.5s ease-in-out infinite alternate; }
+
+.plant-container {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.plant {
+  font-size: clamp(3rem, 6vw, 5rem);
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-origin: bottom center;
+}
+
+.plant.hide { transform: scale(0); opacity: 0; }
+.plant.grow { transform: scale(1.3); filter: drop-shadow(0 0 10px yellow); }
+.plant.dead { transform: rotate(90deg) scale(0.5); opacity: 0.5; filter: grayscale(100%); }
+
+.water-splash {
+  position: absolute;
+  font-size: 2rem;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  opacity: 0;
+  pointer-events: none;
+}
+.water-splash.active { animation: splashAnim 1s forwards; }
+
+/* =========================
+   CHOICES & BUTTONS
+========================= */
+.choices {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  width: 100%;
+  padding: 10px;
+}
+
+.answerBtn {
+  width: clamp(80px, 15vw, 120px);
+  height: clamp(80px, 15vw, 120px);
+  border-radius: 20px;
+  background: linear-gradient(to bottom, #ffeba0, #ffca28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: bold;
+  color: var(--brown);
+  box-shadow: 0 6px 0 #d4a72c, var(--shadow);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  border: 3px solid white;
+}
+
+.answerBtn::after {
+  content: "🛍️";
+  position: absolute;
+  bottom: 5px;
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  opacity: 0.8;
+}
+
+.answerBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 #d4a72c, var(--shadow);
+}
+.answerBtn:active {
+  transform: translateY(6px);
+  box-shadow: 0 0px 0 #d4a72c;
+}
+
+.answerBtn.correct {
+  background: linear-gradient(to bottom, #98fb98, #32cd32);
+  box-shadow: 0 0 20px #32cd32;
+  border-color: #fff;
+  color: white;
+  animation: bounce 0.5s;
+}
+
+.answerBtn.wrong {
+  background: linear-gradient(to bottom, #ff9c9c, #ff4c4c);
+  box-shadow: 0 0 10px red;
+  color: white;
+  animation: shake 0.5s;
+}
+
+/* =========================
+   POPUPS & EFFECTS
+========================= */
+.popup {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  background: white;
+  padding: 15px 30px;
+  border-radius: 25px;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-weight: bold;
+  color: var(--darkgreen);
+  z-index: 50;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  border: 4px solid var(--yellow);
+  text-align: center;
+  pointer-events: none;
+}
+.popup.show { transform: translate(-50%, -50%) scale(1); }
+.popup.error { color: #d32f2f; border-color: #ff4c4c; }
+
+.levelWrap {
+  width: 90%;
+  height: 15px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 10px 0;
+  border: 2px solid white;
+}
+.levelBar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #2ecc71, #f1c40f);
+  transition: width 0.5s ease-out;
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 20px;
+  background: red;
+  animation: fall linear forwards;
+  z-index: 100;
+}
+
+/* KEYFRAMES */
+@keyframes idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes walk {
+  0% { transform: translateY(0) rotate(-5deg); }
+  100% { transform: translateY(-10px) rotate(5deg); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-10px); }
+  40%, 80% { transform: translateX(10px); }
+}
+@keyframes bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+@keyframes splashAnim {
+  0% { transform: translateX(-50%) scale(0) translateY(0); opacity: 1; }
+  50% { transform: translateX(-50%) scale(1.5) translateY(-20px); opacity: 1; }
+  100% { transform: translateX(-50%) scale(2) translateY(10px); opacity: 0; }
+}
+@keyframes fall {
+  to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+/* =========================
+   RESPONSIVE DESIGN
+========================= */
+/* Tablet Portrait / Small Desktop */
+@media(max-width: 900px) {
+  .topbar { flex-direction: column; align-items: center; }
+  .stats, .controls { justify-content: center; }
+  #modeContainer { inset: 110px 10px 10px 10px; }
+  
+  .squad { 
+    grid-template-columns: 1fr 1fr; 
+    grid-template-rows: 1fr 1fr; 
+  }
+}
+
+/* Mobile Portrait */
+@media(max-width: 600px) {
+  #modeContainer { inset: 130px 5px 5px 5px; gap: 8px; }
+  
+  .duel { 
+    grid-template-columns: 1fr; 
+    grid-template-rows: 1fr 1fr; 
+  }
+  .squad { 
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .squad .playerArea {
+    min-height: 400px;
+    flex-shrink: 0;
+  }
+  
+  .wordBox { padding: 10px 20px; letter-spacing: 4px; }
+  .farm-scene { height: 90px; }
+  .topbar button { padding: 8px 12px; font-size: 0.9rem; }
+  .badge { padding: 6px 12px; font-size: 1rem; }
+}
+
+/* Mobile Landscape */
+@media(max-height: 500px) and (orientation: landscape) {
+  .topbar { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 5px; }
+  #modeContainer { inset: 60px 10px 10px 10px; }
+  .gameContent { flex-direction: row; flex-wrap: wrap; }
+  .wordBox { width: 100%; margin-bottom: 5px; font-size: 2rem; }
+  .farm-scene { width: 40%; height: 100px; }
+  .choices { width: 50%; }
+  .answerBtn { width: 70px; height: 70px; font-size: 2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================
+     LOADING SCREEN
+========================================= -->
+<div id="loadingScreen">
+  <div class="loader"></div>
+  <h1>🌾 Memuat Sawah Petani... 🌾</h1>
+</div>
+
+<!-- =========================================
+     GAME CONTAINER
+========================================= -->
+<div id="gameContainer">
+  <!-- Background Alam -->
+  <div class="sky">
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+  </div>
+  <div class="field"></div>
+  <div class="water" id="waterArea"></div>
+
+  <!-- Top Navigation & Controls -->
+  <div class="topbar">
+    <div class="stats">
+      <div class="badge" title="Skor Keseluruhan">⭐ Total: <span id="globalScore">0</span></div>
+      <div class="badge" title="Skor Tertinggi">🏆 Best: <span id="highScore">0</span></div>
+    </div>
+    <div class="controls">
+      <button id="btnSolo" onclick="setMode('single')" class="active">👤 Solo</button>
+      <button id="btnDuel" onclick="setMode('duel')">⚔️ Duel</button>
+      <button id="btnSquad" onclick="setMode('squad')">👨‍👩‍👧‍👦 Squad</button>
+      <button onclick="togglePause()" id="btnPause">⏸️ Pause</button>
+      <button onclick="restartGame()">🔄 Ulang</button>
+      <button onclick="toggleMute()" id="btnMute">🔊 Suara</button>
+      <button onclick="toggleFullscreen()">⛶ Penuh</button>
+    </div>
+  </div>
+
+  <!-- Area Bermain Dinamis -->
+  <div id="modeContainer" class="single"></div>
+</div>
+
+<script>
+/* =========================================================
+   LOGIKA PERMAINAN - JAVASCRIPT
+========================================================= */
+
+// --- DATA SOAL ---
+const WORDS = [
+  { word: "SAPI", missing: "A", display: "S_PI", plant: "🌾" },
+  { word: "PADI", missing: "A", display: "P_DI", plant: "🌾" },
+  { word: "BEBEK", missing: "E", display: "B_BEK", plant: "🌻" },
+  { word: "KUDA", missing: "U", display: "K_DA", plant: "🥕" },
+  { word: "TOMAT", missing: "O", display: "T_MAT", plant: "🍅" },
+  { word: "IKAN", missing: "I", display: "_KAN", plant: "🌱" },
+  { word: "AYAM", missing: "A", display: "_YAM", plant: "🌽" },
+  { word: "RUMPUT", missing: "U", display: "R_MPUT", plant: "🌿" },
+  { word: "JERUK", missing: "E", display: "J_RUK", plant: "🌳" },
+  { word: "ROTI", missing: "O", display: "R_TI", plant: "🥖" }
+];
+
+const VOWELS = ["A", "I", "U", "E", "O"];
+
+// --- STATE PERMAINAN ---
+let gameMode = "single";
+let players = [];
+let globalScore = 0;
+let muted = false;
+let paused = false;
+let isAudioInitialized = false;
+
+// --- SISTEM AUDIO (Sintesis Ringan) ---
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioContext();
+
+function initAudio() {
+    if (isAudioInitialized) return;
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    isAudioInitialized = true;
+}
+
+// Interaksi pertama untuk unlock audio
+document.addEventListener('click', initAudio, { once: true });
+document.addEventListener('touchstart', initAudio, { once: true });
+
+function playTone(freq, type, duration, vol=0.1) {
+    if (muted || audioCtx.state !== 'running') return;
+    try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    } catch(e) { console.log("Audio play error", e); }
+}
+
+// Efek Suara Spesifik
+function soundSuccess() {
+    playTone(523.25, 'sine', 0.1, 0.2); // C5
+    setTimeout(() => playTone(659.25, 'sine', 0.1, 0.2), 100); // E5
+    setTimeout(() => playTone(783.99, 'sine', 0.2, 0.2), 200); // G5
+}
+
+function soundFail() {
+    playTone(300, 'sawtooth', 0.2, 0.1);
+    setTimeout(() => playTone(250, 'sawtooth', 0.3, 0.1), 150);
+}
+
+function soundWater() {
+    // White noise approximation for water splash
+    if (muted || audioCtx.state !== 'running') return;
+    const bufferSize = audioCtx.sampleRate * 0.2; // 0.2 seconds
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const gain = audioCtx.createGain();
+    
+    // Filter to make it sound like water (lowpass)
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 1000;
+    
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+    noise.start();
+}
+
+function soundStep() {
+    playTone(150, 'triangle', 0.05, 0.05);
+}
+
+// --- STORAGE & SCORE ---
+function getHighScore() { return parseInt(localStorage.getItem("vokalHighScoreV2") || "0"); }
+function setHighScore(score) { localStorage.setItem("vokalHighScoreV2", score.toString()); }
+
+function updateGlobalScore() {
+    document.getElementById("globalScore").innerText = globalScore;
+    let hs = getHighScore();
+    if (globalScore > hs) {
+        setHighScore(globalScore);
+        hs = globalScore;
+    }
+    document.getElementById("highScore").innerText = hs;
+}
+
+// --- SETUP MODE PERMAINAN ---
+function setMode(mode) {
+    if(paused) togglePause();
+    
+    gameMode = mode;
+    const container = document.getElementById("modeContainer");
+    container.innerHTML = "";
+    players = [];
+    
+    // Update tombol aktif
+    document.getElementById("btnSolo").classList.remove("active");
+    document.getElementById("btnDuel").classList.remove("active");
+    document.getElementById("btnSquad").classList.remove("active");
+    
+    if (mode === "single") {
+        container.className = "single";
+        document.getElementById("btnSolo").classList.add("active");
+        createPlayerArea(1, "Petani Kecil");
+    } else if (mode === "duel") {
+        container.className = "duel";
+        document.getElementById("btnDuel").classList.add("active");
+        createPlayerArea(1, "Player 1");
+        createPlayerArea(2, "Player 2");
+    } else if (mode === "squad") {
+        container.className = "squad";
+        document.getElementById("btnSquad").classList.add("active");
+        for (let i = 1; i <= 4; i++) createPlayerArea(i, `Player ${i}`);
+    }
+}
+
+function createPlayerArea(id, name) {
+    const area = document.createElement("div");
+    area.className = "playerArea";
+    area.id = `area${id}`;
+    
+    area.innerHTML = `
+        <div class="playerHeader">
+            <span class="playerLabel">${name}</span>
+            <span class="playerScore">⭐ <span id="score${id}">0</span></span>
+        </div>
+        <div class="gameContent">
+            <div class="wordBox" id="word${id}">_</div>
+            
+            <div class="farm-scene">
+                <div class="farmer idle" id="farmer${id}">🧑‍🌾</div>
+                <div class="plant-container">
+                    <div class="plant hide" id="plant${id}">🌾</div>
+                    <div class="water-splash" id="splash${id}">💦</div>
+                </div>
+            </div>
+            
+            <div class="choices" id="choices${id}"></div>
+            
+            <div class="levelWrap">
+                <div class="levelBar" id="levelBar${id}"></div>
+            </div>
+        </div>
+        <div class="popup" id="popup${id}"></div>
+    `;
+    
+    document.getElementById("modeContainer").appendChild(area);
+    
+    const playerObj = {
+        id: id,
+        score: 0,
+        level: 1,
+        isAnimating: false
+    };
+    players.push(playerObj);
+    
+    // Delay sedikit agar transisi mulus
+    setTimeout(() => generateQuestion(playerObj), 200);
+}
+
+// --- GENERATOR SOAL ---
+function generateQuestion(player) {
+    if (player.isAnimating) return;
+    
+    // Reset visual
+    document.getElementById(`farmer${player.id}`).className = "farmer idle";
+    const plantEl = document.getElementById(`plant${player.id}`);
+    plantEl.className = "plant";
+    plantEl.style.transform = "scale(0.8)"; // Tumbuh kecil
+    
+    // Pilih soal acak
+    const q = WORDS[Math.floor(Math.random() * WORDS.length)];
+    const correct = q.missing;
+    
+    // Tampilkan soal dengan garis bawah bergaya
+    const displayHtml = q.display.replace('_', `<span class="missing-letter">_</span>`);
+    document.getElementById(`word${player.id}`).innerHTML = displayHtml;
+    
+    // Set ikon tanaman
+    plantEl.innerText = q.plant;
+    
+    // Siapkan pilihan (1 benar, 1 salah)
+    let choicesArr = [correct];
+    let attempts = 0;
+    while (choicesArr.length < 2 && attempts < 10) {
+        const r = VOWELS[Math.floor(Math.random() * VOWELS.length)];
+        if (!choicesArr.includes(r)) choicesArr.push(r);
+        attempts++;
+    }
+    
+    // Acak posisi pilihan
+    choicesArr.sort(() => Math.random() - 0.5);
+    
+    // Render tombol
+    const choicesContainer = document.getElementById(`choices${player.id}`);
+    choicesContainer.innerHTML = "";
+    
+    choicesArr.forEach(choice => {
+        const btn = document.createElement("button");
+        btn.className = "answerBtn";
+        btn.innerText = choice;
+        btn.onclick = () => handleAnswer(player, choice, correct, btn, q);
+        choicesContainer.appendChild(btn);
+    });
+}
+
+// --- PENANGANAN JAWABAN (ANIMASI & LOGIKA) ---
+function handleAnswer(player, answer, correct, btn, questionObj) {
+    if (paused || player.isAnimating) return;
+    
+    player.isAnimating = true;
+    const isCorrect = (answer === correct);
+    const farmer = document.getElementById(`farmer${player.id}`);
+    const plant = document.getElementById(`plant${player.id}`);
+    const splash = document.getElementById(`splash${player.id}`);
+    
+    // Matikan semua tombol sementara
+    const allBtns = document.getElementById(`choices${player.id}`).querySelectorAll('.answerBtn');
+    allBtns.forEach(b => b.style.pointerEvents = 'none');
+    
+    if (isCorrect) {
+        // --- JAWABAN BENAR ---
+        btn.classList.add("correct");
+        
+        // 1. Petani berjalan ke tanaman
+        farmer.className = "farmer walk";
+        farmer.style.transform = "translateX(30px)";
+        let walkInt = setInterval(soundStep, 200);
+        
+        setTimeout(() => {
+            clearInterval(walkInt);
+            // 2. Petani menyiram
+            farmer.className = "farmer idle";
+            farmer.innerText = "🚿"; // Ganti ikon menyiram
+            splash.classList.add("active");
+            soundWater();
+            
+            setTimeout(() => {
+                // 3. Tanaman tumbuh dan suara sukses
+                plant.className = "plant grow";
+                splash.classList.remove("active");
+                soundSuccess();
+                
+                // Update teks soal lengkap
+                document.getElementById(`word${player.id}`).innerHTML = 
+                    questionObj.word.replace(correct, `<span style="color:var(--darkgreen)">${correct}</span>`);
+                
+                showPopup(player.id, "Bagus! 🌟", false);
+                
+                // Update Skor
+                player.score++;
+                globalScore++;
+                document.getElementById(`score${player.id}`).innerText = player.score;
+                updateGlobalScore();
+                updateLevel(player);
+                
+                if (player.score % 5 === 0) triggerConfetti();
+                ambientSplash(); // Efek air latar belakang
+                
+                // 4. Reset & Lanjut
+                setTimeout(() => {
+                    farmer.innerText = "🧑‍🌾";
+                    farmer.style.transform = "translateX(0)";
+                    player.isAnimating = false;
+                    generateQuestion(player);
+                }, 1500);
+                
+            }, 500);
+            
+        }, 500);
+        
+    } else {
+        // --- JAWABAN SALAH ---
+        btn.classList.add("wrong");
+        soundFail();
+        
+        // 1. Petani terkejut
+        farmer.innerText = "🤦‍♂️";
+        
+        // 2. Tanaman layu/dicabut
+        plant.className = "plant dead";
+        showPopup(player.id, "Coba Lagi! 💦", true);
+        
+        setTimeout(() => {
+            farmer.innerText = "🧑‍🌾";
+            btn.classList.remove("wrong");
+            // Biarkan mencoba lagi tanpa ganti soal
+            plant.className = "plant"; 
+            allBtns.forEach(b => b.style.pointerEvents = 'auto');
+            player.isAnimating = false;
+        }, 1200);
+    }
+}
+
+// --- SISTEM LEVEL & POPUP ---
+function updateLevel(player) {
+    const progress = (player.score % 5) * 20; // Naik level tiap 5 poin
+    document.getElementById(`levelBar${player.id}`).style.width = `${progress}%`;
+    if (progress === 0 && player.score > 0) {
+        player.level++;
+    }
+}
+
+function showPopup(id, text, isError) {
+    const popup = document.getElementById(`popup${id}`);
+    popup.innerText = text;
+    popup.className = `popup show ${isError ? 'error' : ''}`;
+    setTimeout(() => {
+        popup.className = "popup";
+    }, 1000);
+}
+
+// --- EFEK VISUAL GLOBAL ---
+function triggerConfetti() {
+    const colors = ['#fce18a', '#ff726d', '#b48def', '#f4306d', '#70d66b'];
+    for (let i = 0; i < 60; i++) {
+        const confetti = document.createElement("div");
+        confetti.className = "confetti";
+        confetti.style.left = Math.random() * 100 + "vw";
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDuration = (Math.random() * 2 + 2) + "s";
+        confetti.style.animationDelay = Math.random() * 0.5 + "s";
+        document.body.appendChild(confetti);
+        
+        setTimeout(() => confetti.remove(), 5000);
+    }
+}
+
+function ambientSplash() {
+    const water = document.getElementById("waterArea");
+    const ripple = document.createElement("div");
+    ripple.className = "ripple";
+    ripple.style.left = Math.random() * 90 + "%";
+    ripple.style.bottom = (Math.random() * 20) + "px"; // Muncul dari bawah
+    ripple.style.width = "40px";
+    ripple.style.height = "20px";
+    
+    water.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 2000);
+}
+
+// Efek ambien acak
+setInterval(() => {
+    if (!paused) ambientSplash();
+}, 3000);
+
+// --- KONTROL GLOBAL (Pause, Mute, Fullscreen) ---
+function togglePause() {
+    paused = !paused;
+    const btn = document.getElementById("btnPause");
+    if (paused) {
+        btn.innerText = "▶️ Lanjut";
+        btn.classList.add("active");
+        document.getElementById("modeContainer").style.opacity = "0.5";
+        document.getElementById("modeContainer").style.pointerEvents = "none";
+    } else {
+        btn.innerText = "⏸️ Pause";
+        btn.classList.remove("active");
+        document.getElementById("modeContainer").style.opacity = "1";
+        document.getElementById("modeContainer").style.pointerEvents = "auto";
+    }
+}
+
+function toggleMute() {
+    muted = !muted;
+    const btn = document.getElementById("btnMute");
+    if (muted) {
+        btn.innerText = "🔇 Bisu";
+        btn.classList.add("active");
+    } else {
+        btn.innerText = "🔊 Suara";
+        btn.classList.remove("active");
+        initAudio(); // Pastikan audio aktif saat di-unmute
+    }
+}
+
+function restartGame() {
+    if(confirm("Apakah kamu ingin mengulang permainan dari awal?")) {
+        globalScore = 0;
+        updateGlobalScore();
+        setMode(gameMode);
+    }
+}
+
+function toggleFullscreen() {
+    const doc = window.document;
+    const docEl = doc.documentElement;
+
+    const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+    const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+    if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+        if(requestFullScreen) requestFullScreen.call(docEl).catch(err => console.log(err));
+    } else {
+        if(cancelFullScreen) cancelFullScreen.call(doc);
+    }
+}
+
+// --- STARTUP LOGIC ---
+window.onload = () => {
+    document.getElementById("highScore").innerText = getHighScore();
+    
+    // Tahan loading screen sebentar untuk efek visual
+    setTimeout(() => {
+        const loader = document.getElementById("loadingScreen");
+        loader.style.opacity = "0";
+        setTimeout(() => {
+            loader.remove();
+            setMode("single");
+        }, 500);
+    }, 1500);
+};
+
+</script>
+</body>
+</html>
